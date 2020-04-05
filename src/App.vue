@@ -40,9 +40,17 @@ export default {
     showOriginal: false,
     image: require("./assets/logo.png"),
     grayscaleIntensity: 50,
-    url: ""
+    url: "",
+    token: ""
   }),
-  mounted: function() {},
+  mounted: function() {
+    const result = location.hash
+      .split("&")
+      .filter(item => item.includes("access_token"));
+    if (result.length > 0) {
+      this.token = result[0].split("=")[1];
+    }
+  },
   methods: {
     grayscale() {
       const canvas = document.getElementById("calculation-canvas");
@@ -62,6 +70,17 @@ export default {
       canvas.toBlob(
         async blob => {
           downloadBlob("image.png", blob);
+
+          const data = new FormData();
+          data.append("file", blob);
+
+          fetch("https://api.imgur.com/3/image", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${this.token}`
+            },
+            data: blob
+          });
         },
         "image/png",
         1
